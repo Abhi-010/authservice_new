@@ -3,14 +3,11 @@ package dev.abhi.userservice.userservice.dtos;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
-public class LoginResponseDto {
+public class LogoutResponseDto {
     private String name ;
     private String email ;
-    private String token ;
+    private Long sessionId ;
     private String SessionStatus ;
-    private Long expTime ;
 }
