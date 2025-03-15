@@ -38,7 +38,7 @@ public class AuthService {
        return UserResponseDto.from(savedUser) ;
    }
 
-   public LoginResponseDto login(String email, String password){
+   public LoginResponseDto login(String email, String password) throws Exception {
 
        Optional<User> user = userRepository.findByEmail(email);
        if(user.isEmpty()){
@@ -49,8 +49,9 @@ public class AuthService {
        User savedUser = user.get() ;
 
        if(!bCryptPasswordEncoder.matches(password,savedUser.getPassword())){
-           System.out.println("Invalid Password");
-           return null ;
+//           System.out.println("Invalid Password");
+//           return null ;
+           throw new Exception("Invalid password") ;
        }
 
        Session session = new Session();
