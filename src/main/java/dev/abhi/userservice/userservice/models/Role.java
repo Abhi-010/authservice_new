@@ -11,7 +11,6 @@ import java.util.Objects;
 @Entity
 public class Role extends BaseModel{
     private String role ;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

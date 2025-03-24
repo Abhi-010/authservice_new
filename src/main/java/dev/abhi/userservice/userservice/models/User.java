@@ -1,5 +1,6 @@
 package dev.abhi.userservice.userservice.models;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import lombok.Getter;
@@ -13,6 +14,6 @@ public class User extends BaseModel {
     private String name ;
     private String email ;
     private String password ;
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Role> roles ;
 }
