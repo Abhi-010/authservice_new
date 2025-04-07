@@ -14,7 +14,6 @@ import java.util.Date;
 @Setter
 public class Session extends BaseModel{
     private String token ;
-    private Long expiringTimeinMiliis ;
     @ManyToOne
     private User user;
     @Enumerated(EnumType.ORDINAL)

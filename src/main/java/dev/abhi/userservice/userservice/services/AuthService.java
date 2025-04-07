@@ -2,7 +2,6 @@ package dev.abhi.userservice.userservice.services;
 
 import dev.abhi.userservice.userservice.dtos.LoginResponseDto;
 import dev.abhi.userservice.userservice.dtos.LogoutResponseDto;
-import dev.abhi.userservice.userservice.dtos.TokenValidResponseDto;
 import dev.abhi.userservice.userservice.models.Role;
 import dev.abhi.userservice.userservice.models.Session;
 import dev.abhi.userservice.userservice.models.SessionStatus;
@@ -10,6 +9,8 @@ import dev.abhi.userservice.userservice.models.User;
 import dev.abhi.userservice.userservice.repo.SessionRepository;
 import dev.abhi.userservice.userservice.repo.UserRepository;
 import dev.abhi.userservice.userservice.dtos.UserResponseDto;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -27,11 +28,17 @@ public class AuthService {
    private UserRepository userRepository ;
    private SessionRepository sessionRepository ;
    private BCryptPasswordEncoder bCryptPasswordEncoder ;
-   public AuthService(UserRepository userRepository,SessionRepository sessionRepository,BCryptPasswordEncoder bCryptPasswordEncoder)
+   private JwtUtil jwtUtil ;
+
+   public AuthService(UserRepository userRepository
+           ,SessionRepository sessionRepository
+           ,BCryptPasswordEncoder bCryptPasswordEncoder
+           ,JwtUtil jwtUtil)
    {
        this.sessionRepository = sessionRepository ;
        this.userRepository = userRepository ;
        this.bCryptPasswordEncoder = bCryptPasswordEncoder ;
+       this.jwtUtil = jwtUtil ;
    }
 
    public UserResponseDto signUp(String name, String email, String password){
@@ -55,64 +62,28 @@ public class AuthService {
    public LoginResponseDto login(String email, String password) throws Exception {
        Optional<User> user = userRepository.findByEmail(email);
        if(user.isEmpty()){
-//           System.out.println("No user with this email");
-//           return null ;
            throw new Exception("Invalid email") ;
        }
        User savedUser = user.get() ;
-
        if(!bCryptPasswordEncoder.matches(password,savedUser.getPassword())){
-//           System.out.println("Invalid Password");
-//           return null ;
            throw new Exception("Invalid password") ;
        }
 
-       // Create a test key suitable for the desired HMAC-SHA algorithm:
-       MacAlgorithm alg = Jwts.SIG.HS256; //or HS384 or HS256
-       SecretKey key = alg.key().build();
-//       String message = "{\n" +
-//               "  \"email\": \"abhi@gmail.com\",\n" +
-//               "  \"name\": \"Abhi Kumar\",\n" +
-//               "  \"roles\": [\"mentor\",\"ta\",\"student\"]\n" +
-//               "}";
-
-       Map<String, Object> jsonForJwt = new HashMap<>();
-       jsonForJwt.put("email",savedUser.getEmail());
-       jsonForJwt.put("roles",savedUser.getRoles());
-       jsonForJwt.put("user_id", savedUser.getId());
-       jsonForJwt.put("creationDate", new Date());
-       jsonForJwt.put("expireAt", new Date(LocalDate.now().plusDays(3).toEpochDay())) ;
-
-      // byte[] content = message.getBytes(StandardCharsets.UTF_8);
-// Create the compact JWS:
-       String jws = Jwts.builder()
-               .claims(jsonForJwt)
-//               .content(content, "text/plain")
-               .signWith(key, alg)
-               .compact();
-
-// Parse the compact JWS:
-       //content = Jwts.parser().verifyWith(key).build().parseSignedContent(jws).getPayload();
-       //assert message.equals(new String(content, StandardCharsets.UTF_8));
-
+       String jwsToken = JwtUtil.generateToken(savedUser);
 
        Session session = new Session();
        session.setUser(savedUser);
        //session.setToken(RandomStringUtils.randomAlphanumeric(30));
-       session.setToken(jws);
+       session.setToken(jwsToken);
        session.setSessionStatus(SessionStatus.ACTIVE);
-       session.setExpiringTimeinMiliis(System.currentTimeMillis()+60000);
 
        Session savedSession = sessionRepository.save(session) ;
 
        LoginResponseDto loginResponseDto = new LoginResponseDto() ;
-
        loginResponseDto.setName(savedUser.getName());
        loginResponseDto.setEmail(savedUser.getEmail());
        loginResponseDto.setToken(savedSession.getToken());
        loginResponseDto.setSessionStatus(savedSession.getSessionStatus().toString());
-       loginResponseDto.setExpTime(savedSession.getExpiringTimeinMiliis());
-
        return loginResponseDto ;
    }
 
@@ -138,35 +109,19 @@ public class AuthService {
 
    }
 
-   public TokenValidResponseDto validateToken(String token,Long userId){
+   public SessionStatus validateToken(String jwsToken,Long userId){
 
        Optional<Session> optionalSession =
-               sessionRepository.findByTokenAndUserId(token,userId) ;
+               sessionRepository.findByTokenAndUserId(jwsToken,userId) ;
 
        if(optionalSession.isEmpty()){
-           System.out.println("No token with this user");
-           return null  ;
+           return SessionStatus.ENDED ;
        }
 
        Session session = optionalSession.get();
-       TokenValidResponseDto tokenValidResponseDto = new TokenValidResponseDto() ;
-       if(session.getSessionStatus() == SessionStatus.ACTIVE &&
-       System.currentTimeMillis() < session.getExpiringTimeinMiliis()){
-           tokenValidResponseDto.setMessage("Valid Token");
-           return tokenValidResponseDto ;
+       if(session.getSessionStatus() != SessionStatus.ACTIVE){
+           return SessionStatus.ENDED;
        }
-
-
-//       List<Session> sessionList = sessionRepository.findAll() ;
-//       TokenValidResponseDto tokenValidResponseDto = new TokenValidResponseDto() ;
-//       for(Session session : sessionList){
-//           if(session.getToken().equals(token) && session.getSessionStatus() == SessionStatus.ACTIVE &&
-//                   System.currentTimeMillis() < session.getExpiringTimeinMiliis() ){
-//               tokenValidResponseDto.setMessage("Valid Token");
-//               return tokenValidResponseDto ;
-//           }
-//       }
-       tokenValidResponseDto.setMessage("Invalid token");
-       return tokenValidResponseDto ;
+       return JwtUtil.validateTokenLocally(jwsToken,userId);
    }
 }

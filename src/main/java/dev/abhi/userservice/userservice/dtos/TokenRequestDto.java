@@ -5,6 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TokenValidResponseDto {
-    String message ;
+public class TokenRequestDto {
+    String authToken ;
 }

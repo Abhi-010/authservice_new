@@ -1,7 +1,10 @@
 package dev.abhi.userservice.userservice.controllers;
 import dev.abhi.userservice.userservice.dtos.*;
+import dev.abhi.userservice.userservice.models.Session;
+import dev.abhi.userservice.userservice.models.SessionStatus;
 import dev.abhi.userservice.userservice.services.AuthService;
 import lombok.Getter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,9 +62,19 @@ public class AuthController {
     }
 
     @GetMapping("/validateToken/{id}")
-    public ResponseEntity<TokenValidResponseDto> validateToken(@RequestBody TokenValidRequestDto tokenValidateDto,
-                                                               @PathVariable("id") Long id){
-        TokenValidResponseDto tokenValidResponseDto =  authService.validateToken(tokenValidateDto.getToken(),id) ;
-        return new ResponseEntity<TokenValidResponseDto>(tokenValidResponseDto,HttpStatus.OK);
+    public ResponseEntity<SessionStatus> validateToken(
+            //@RequestBody TokenValidRequestDto tokenValidateDto
+            HttpEntity<TokenRequestDto> httpEntity
+            ,@PathVariable("id") Long userId){
+
+        //TokenValidResponseDto tokenValidResponseDto =  authService.validateToken(tokenValidateDto.getToken(),userId) ;
+
+        TokenRequestDto requestDto = httpEntity.getBody() ;
+        assert requestDto != null;
+        System.out.println("auth token : " + requestDto.getAuthToken());
+
+        System.out.println("http headers : " + httpEntity.getHeaders());
+
+        return new ResponseEntity<SessionStatus>(authService.validateToken(requestDto.getAuthToken(),userId) ,HttpStatus.OK);
     }
 }
