@@ -12,7 +12,8 @@ public class SecurityConfig {
     @Bean // this annotation will create an object of class SecurityFilterChain
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((requests) -> {
+                .authorizeHttpRequests(
+                        (requests) -> {
                             try {
                                 requests
                                         .anyRequest().permitAll()
