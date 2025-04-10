@@ -1,4 +1,4 @@
-package dev.abhi.userservice.userservice.configs;
+package dev.abhi.userservice.userservice.Security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
