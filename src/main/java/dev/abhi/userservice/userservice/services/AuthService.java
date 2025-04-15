@@ -48,11 +48,13 @@ public class AuthService {
        //bCryptPasswordEncoder.encode(password)
        //newUser.setPassword(password);
        newUser.setPassword(bCryptPasswordEncoder.encode(password));
+
        Role role = new Role() ;
-       role.setRole("Mentor");
-       role.setRole("ta");
+       //role.setRole("Mentor");
+       role.setRole("Role_TA");
        List<Role> list = new ArrayList<>();
        list.add(role);
+
        newUser.setRoles(list);
        User savedUser = userRepository.save(newUser) ;
        return UserResponseDto.from(savedUser) ;
