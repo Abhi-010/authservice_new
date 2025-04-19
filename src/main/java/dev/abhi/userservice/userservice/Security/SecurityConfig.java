@@ -56,7 +56,6 @@ public class SecurityConfig {
 
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
                 OAuth2AuthorizationServerConfigurer.authorizationServer();
-
         http
                 .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
                 .with(authorizationServerConfigurer, (authorizationServer) ->
@@ -84,11 +83,11 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
             throws Exception {
         http
-                //.csrf().disable()
+                .csrf().disable()
                 .authorizeHttpRequests(
                         (authorize) -> authorize
-                                //.requestMatchers(HttpMethod.POST,"/auth/signup").permitAll()
-                                //.requestMatchers(HttpMethod.POST,"/auth/login").authenticated()
+                                .requestMatchers(HttpMethod.POST,"/auth/signup").permitAll()
+                                .requestMatchers(HttpMethod.POST,"/auth/login").authenticated()
                                 .anyRequest().authenticated()
                 )
                 // Form login handles the redirect to the login page from the

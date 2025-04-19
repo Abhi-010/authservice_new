@@ -1,5 +1,6 @@
 package dev.abhi.userservice.userservice.Security;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.abhi.userservice.userservice.models.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,6 +9,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class CustomUserDetail implements UserDetails {
+
+    @JsonIgnore
     private User user ;
     public CustomUserDetail(User user){
         this.user = user ;
